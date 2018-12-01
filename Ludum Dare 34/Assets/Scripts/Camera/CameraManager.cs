@@ -4,61 +4,124 @@ using UnityEngine;
 
 public class CameraManager : MonoBehaviour {
 
+    public static CameraManager instance;
+
     private Vector3 defaultCameraPosition;
-    private Quaternion defaultCameraRotation;
 
     private Transform focusTarget;
 
-    public float moveSpeed = 2, scrollSpeed = 5;
-    public float heightMin = 5, heightMax = 20;
+    public Vector3 targetOffset;
 
-    public float borderMovePadding = 40;
+    public float moveSpeed = 2, rotateSpeed = 5;
 
-    private int screenHeight;
+    private bool canHorRotate = false;
 
-	void Start () {
+    private void Awake()
+    {
+        instance = this;
+    }
+
+    void Start () {
 
         defaultCameraPosition = transform.position;
-        
-        defaultCameraRotation = transform.rotation;
-
-        screenHeight = Screen.height;
     }
 	
 	void Update () {
         float horDirection = Input.GetAxis("Horizontal");
         float vertDirection = Input.GetAxis("Vertical");
 
-        float scrollWheel = Input.GetAxis("Mouse ScrollWheel");
+        if (focusTarget == null)
+        {
+            if (UIController.instance.actionBarObject.activeSelf)
+            {
+                UIController.instance.toggleActionBar(false);
+            }
+
+            if (UIController.instance.infoBoxObject.activeSelf)
+            {
+                UIController.instance.infoBoxObject.SetActive(false);
+            }
+        }else if (focusTarget != null)
+        {
+            if (!UIController.instance.actionBarObject.activeSelf)
+            {
+                UIController.instance.toggleActionBar(true);
+            }
+        }
 
         #region Horizontal Movement
         if (horDirection < 0)
         {
             transform.position = new Vector3(transform.position.x - moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
+            removeTarget();
         }else if (horDirection > 0)
         {
             transform.position = new Vector3(transform.position.x + moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
+            removeTarget();
         }
         #endregion
 
         #region Vertical Movement
-        if (vertDirection < 0)
+        if (vertDirection > 0)
         {
-            transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y - moveSpeed * Time.deltaTime, heightMin, heightMax), transform.position.z);
+            transform.position = new Vector3(transform.position.x, transform.position.y, transform.localPosition.z + moveSpeed * Time.deltaTime);
+            removeTarget();
         }
-        else if (vertDirection > 0)
+        else if (vertDirection < 0)
         {
-            transform.position = new Vector3(transform.position.x, Mathf.Clamp(transform.position.y + moveSpeed * Time.deltaTime, heightMin, heightMax), transform.position.z);
+            transform.position = new Vector3(transform.position.x, transform.position.y, transform.localPosition.z - moveSpeed * Time.deltaTime);
+
+            removeTarget();
         }
         #endregion
     }
 
     public void LateUpdate()
     {
+
+        float scrollWheel = Input.GetAxis("Mouse ScrollWheel");
+
+        #region Vertical Rotate
+        if (scrollWheel < 0)
+        {
+            transform.RotateAround(transform.position, Vector3.right, rotateSpeed * Time.deltaTime);
+        }
+        else if (scrollWheel > 0)
+        {
+            transform.RotateAround(transform.position, Vector3.right, -rotateSpeed * Time.deltaTime);
+        }
+        #endregion
+
+        #region Left & Right Rotate
+        if (canHorRotate)
+        {
+            if (Input.GetButton("Rotate Left"))
+            {
+                transform.RotateAround(transform.position, Vector3.up, -rotateSpeed * Time.deltaTime);
+            }
+            else if (Input.GetButton("Rotate Right"))
+            {
+                transform.RotateAround(transform.position, Vector3.up, rotateSpeed * Time.deltaTime);
+            }
+        }
+        #endregion
+
         if (focusTarget != null)
         {
-            transform.position = Vector3.Lerp(transform.position, focusTarget.position, Time.deltaTime * 5);
+            transform.position =Vector3.Lerp(transform.position, focusTarget.position + targetOffset, Time.deltaTime * 5);
         }
+    }
+
+    public void removeTarget()
+    {
+        focusTarget = null;
+
+        transform.position = Vector3.Lerp(new Vector3(transform.position.x, transform.position.y, transform.position.z), new Vector3(transform.position.x, defaultCameraPosition.y, transform.position.z), Time.deltaTime * 5);
+    }
+
+    public Transform getFocusTarget()
+    {
+        return focusTarget;
     }
 
     public void setFocusTarget(Transform _newTarget)
