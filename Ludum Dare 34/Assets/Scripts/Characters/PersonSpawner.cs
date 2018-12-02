@@ -95,6 +95,8 @@ public class PersonSpawner : MonoBehaviour {
 
                 setPersonStats(tpc);
 
+                spawnedPerson.name = tpc.getPersonName();
+
                 TownController.instance.townPersonsTransforms.Add(spawnedPerson.transform);
                 TownController.instance.townCurrentSize = TownController.instance.townPersonsTransforms.ToArray().Length;
 

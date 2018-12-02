@@ -17,7 +17,14 @@ public class PersonSelector : MonoBehaviour {
 
                 if (otherTag == "Towns Person")
                 {
+                    if (CameraManager.instance.getFocusTarget() != null)
+                    {
+                        CameraManager.instance.removeTarget();
+                    }
+
                     CameraManager.instance.setFocusTarget(hit.transform);
+
+                    hit.collider.GetComponent<TownPersonController>().isControlling = true;
 
                     if (UIController.instance.infoBoxObject.activeSelf)
                     {

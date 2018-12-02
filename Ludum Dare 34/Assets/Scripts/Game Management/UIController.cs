@@ -15,7 +15,7 @@ public class UIController : MonoBehaviour {
 
     public Slider maleSlider, femaleSlider;
 
-    public TextMeshProUGUI infoNameText, infoGenderText, infoAgeText, infoHappinessText, infoSpeedText;
+    public TextMeshProUGUI infoNameText, infoGenderText, infoAgeText, infoHappinessText, infoSpeedText, infoPartnerText, infoTaskText;
 
     public TextMeshProUGUI populationText, killedPersonsText, happinessText;
 
@@ -24,6 +24,12 @@ public class UIController : MonoBehaviour {
         instance = this;
     }
 
+
+    private void Start()
+    {
+        maleSlider.maxValue = PersonSpawner.instance.maxMales;
+        femaleSlider.maxValue = PersonSpawner.instance.maxFemales;
+    }
 
     public void updateSliders()
     {
@@ -57,6 +63,39 @@ public class UIController : MonoBehaviour {
         infoAgeText.text = "Age: " + _tcp.getPersonAge();
         infoHappinessText.text = "Happiness: " + _tcp.getPersonHappiness();
         infoSpeedText.text = "Speed: " + _tcp.getPersonSpeed();
+        if (_tcp.getPersonsPartner() != null)
+        {
+            infoPartnerText.text = "Partner: " + _tcp.getPersonsPartner().GetComponent<TownPersonController>().getPersonName();
+        }
+        else
+        {
+            infoPartnerText.text = "Partner: Single";
+        }
+
+        if (_tcp.tpa.getCurrentTask() == "none")
+        {
+            infoTaskText.text = "Task: Doing nothing.";
+        }else if (_tcp.tpa.getCurrentTask() != "none")
+        {
+            infoTaskText.text = "Task: " + _tcp.tpa.getCurrentTask();
+        }
+        
+    }
+
+    public void updateHappinessInfoText(float _happiness)
+    {
+        if (infoBoxObject.activeSelf)
+        {
+            infoHappinessText.text = "Happiness: " + _happiness;
+        }
+    }
+
+    public void updateTaskInfoText(string _task)
+    {
+        if (infoBoxObject.activeSelf)
+        {
+            infoTaskText.text = "Task: " + _task;
+        }
     }
 
     #endregion

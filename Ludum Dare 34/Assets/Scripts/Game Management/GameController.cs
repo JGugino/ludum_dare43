@@ -10,7 +10,7 @@ public class GameController : MonoBehaviour {
 
     public bool isPaused = false;
 
-    private int currentCheckDelay = 0, maxCheckDelay = 600;
+    private int currentCheckDelay = 0, maxCheckDelay = 450;
 
     public int personsAverageHappiness = 0, totalHappiness = 0;
 
@@ -38,9 +38,11 @@ public class GameController : MonoBehaviour {
 
         foreach (Transform t in TownController.instance.townPersonsTransforms)
         {
-            TownPersonController tcp = t.GetComponent<TownPersonController>();
-
-            totalHappiness += (int)tcp.getPersonHappiness();
+            if (t != null)
+            {
+                TownPersonController tcp = t.GetComponent<TownPersonController>();
+                totalHappiness += (int)tcp.getPersonHappiness();
+            }
         }
 
         personsAverageHappiness = totalHappiness / TownController.instance.townPersonsTransforms.ToArray().Length;

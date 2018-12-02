@@ -74,6 +74,11 @@ public class CameraManager : MonoBehaviour {
             removeTarget();
         }
         #endregion
+
+        if (focusTarget == null && transform.position != defaultCameraPosition)
+        {
+            transform.position = Vector3.Lerp(new Vector3(transform.position.x, transform.position.y, transform.position.z), new Vector3(transform.position.x, defaultCameraPosition.y, transform.position.z), Time.deltaTime * 5);
+        }
     }
 
     public void LateUpdate()
@@ -114,9 +119,14 @@ public class CameraManager : MonoBehaviour {
 
     public void removeTarget()
     {
-        focusTarget = null;
+        if (focusTarget != null)
+        {
+            focusTarget.GetComponent<TownPersonController>().isControlling = false;
 
-        transform.position = Vector3.Lerp(new Vector3(transform.position.x, transform.position.y, transform.position.z), new Vector3(transform.position.x, defaultCameraPosition.y, transform.position.z), Time.deltaTime * 5);
+            focusTarget = null;
+
+            transform.position = Vector3.Lerp(new Vector3(transform.position.x, transform.position.y, transform.position.z), new Vector3(transform.position.x, defaultCameraPosition.y, transform.position.z), Time.deltaTime * 5);
+        }
     }
 
     public Transform getFocusTarget()
