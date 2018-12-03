@@ -52,11 +52,11 @@ public class CameraManager : MonoBehaviour {
         #region Horizontal Movement
         if (horDirection < 0)
         {
-            transform.position = new Vector3(transform.position.x - moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
+            transform.position = new Vector3(Mathf.Clamp(transform.position.x - moveSpeed * Time.deltaTime, 50, 155), transform.position.y, transform.position.z);
             removeTarget();
         }else if (horDirection > 0)
         {
-            transform.position = new Vector3(transform.position.x + moveSpeed * Time.deltaTime, transform.position.y, transform.position.z);
+            transform.position = new Vector3(Mathf.Clamp(transform.position.x + moveSpeed * Time.deltaTime, 50, 155), transform.position.y, transform.position.z);
             removeTarget();
         }
         #endregion
@@ -64,12 +64,12 @@ public class CameraManager : MonoBehaviour {
         #region Vertical Movement
         if (vertDirection > 0)
         {
-            transform.position = new Vector3(transform.position.x, transform.position.y, transform.localPosition.z + moveSpeed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Clamp(transform.position.z + moveSpeed * Time.deltaTime, 15, 150));
             removeTarget();
         }
         else if (vertDirection < 0)
         {
-            transform.position = new Vector3(transform.position.x, transform.position.y, transform.localPosition.z - moveSpeed * Time.deltaTime);
+            transform.position = new Vector3(transform.position.x, transform.position.y, Mathf.Clamp(transform.position.z - moveSpeed * Time.deltaTime, 15, 150));
 
             removeTarget();
         }

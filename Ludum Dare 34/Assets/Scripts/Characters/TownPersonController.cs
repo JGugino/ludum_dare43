@@ -8,6 +8,8 @@ public class TownPersonController : MonoBehaviour {
 
     public TownPersonAI tpa;
 
+    private bool dumbMode = false;
+
     public bool isControlling = false;
 
     private string personName = "Anna";
@@ -38,9 +40,9 @@ public class TownPersonController : MonoBehaviour {
 
     private Transform currentMate = null;
 
-    private TownPersonController mateTCP;
+    public GameObject happyIcon, madIcon, matingIcon;
 
-    private bool decreasingHappiness =  false, increasingHappiness = false;
+    public bool happyActive =false, madActive = false, matingActive = false;
 
     public List<Transform> children;
 
@@ -59,88 +61,229 @@ public class TownPersonController : MonoBehaviour {
     {
         if (!GameController.instance.isPaused)
         {
-            if (!increasingHappiness || !decreasingHappiness)
+            //StartCoroutine(IconDisplay());
+
+            if (TownController.instance.murder || !GameController.instance.townHappy || 
+                TownController.instance.currentTownHappiness < TownController.instance.maxTownHappiness || MetorSpawner.instance.startMetorShower)
             {
-                StartCoroutine(happinessManagement());
+                happinessDecreaseManagement();
             }
 
-            if (!isControlling)
+            if (!TownController.instance.murder || GameController.instance.townHappy || !MetorSpawner.instance.startMetorShower)
             {
-                currentBoredDelay--;
-                if (currentBoredDelay <= maxBoredDelay)
+                if (personHappiness < maxHappiness)
                 {
-                    decreasePersonHappiness();
-                    resetBoredDelay();
+                    happinessIncreaseManagement();
+                }
+                else if(personHappiness > maxHappiness)
+                {
+                    personHappiness = maxHappiness;
                 }
             }
 
-            if (!isControlling)
+            if (isControlling)
             {
-                tpa.personAI();
-            }else if (isControlling)
-            {
-                if (Input.GetMouseButtonDown(0))
-                {
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    RaycastHit hit;
+                //tpa.setCurrentTask("Obeying Orders");
+                //if (Input.GetMouseButtonDown(0))
+                //{
+                //    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                //    RaycastHit hit;
 
-                    if (Physics.Raycast(ray, out hit))
-                    {
-                        if (hit.collider.CompareTag("Ground"))
-                        {
-                            float distance = Vector3.Distance(transform.position, hit.point);
+                //    if (Physics.Raycast(ray, out hit))
+                //    {
+                //        if (hit.collider.CompareTag("Ground"))
+                //        {
+                //            float distance = Vector3.Distance(transform.position, hit.point);
 
-                            if (distance < moveDistance)
-                            {
-                                movePersonPosition(hit.point);
-                                increasePersonHappiness();
-                                resetBoredDelay();
-                            }
-                        }
-                    }
-                }
+                //            if (distance < moveDistance)
+                //            {
+                //                movePersonPosition(hit.point);
+                //                increasePersonHappiness();
+                //                resetBoredDelay();
+                //            }
+                //        }
+                //    }
+                //}
             }
         }
     }
 
-    public IEnumerator happinessManagement()
+    public IEnumerator IconDisplay()
     {
-        yield return new WaitForEndOfFrame();
+        yield return new WaitForSeconds(10);
+
+        if (personHappiness > maxHappiness / 2)
+        {
+            if (!happyActive)
+            {
+                happyActive = true;
+                madActive = false;
+            }
+        }
+
+        if (personHappiness < maxHappiness / 2)
+        {
+            if (!madActive)
+            {
+                madActive = true;
+                happyActive = false;
+            }
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        if (happyActive)
+        {
+            if (!happyIcon.activeSelf)
+            {
+                happyIcon.SetActive(true);
+                madIcon.SetActive(false);
+                matingIcon.SetActive(false);
+            }
+        }
+
+        if (madActive)
+        {
+            if (!madIcon.activeSelf)
+            {
+                happyIcon.SetActive(false);
+                madIcon.SetActive(true);
+                matingIcon.SetActive(false);
+            }
+        }
+
+        yield return new WaitForSeconds(10);
+
+        if (happyIcon.activeSelf == true)
+        {
+            happyIcon.SetActive(false);
+            happyActive = false;
+        }
+        if (madIcon.activeSelf)
+        {
+            madIcon.SetActive(false);
+            madActive = false;
+        }
+        if (matingIcon.activeSelf)
+        {
+            matingIcon.SetActive(false);
+            matingActive = false;
+        }
+
+        yield return null;
+    }
+
+    public void happinessIncreaseManagement()
+    {
         #region Increase Happiness
         if (TownController.instance.townCurrentSize <= TownController.instance.townMaxSize)
         {
             UIController.instance.updateHappinessInfoText(increasePersonHappiness());
+            return;
         }
         if (TownController.instance.currentTownHappiness >= TownController.instance.minTownHappiness)
         {
             UIController.instance.updateHappinessInfoText(increasePersonHappiness());
+            return;
         }
         #endregion
+    }
 
-        yield return new WaitForEndOfFrame();
+    public void happinessDecreaseManagement()
+    {
         #region Decrease Happiness
         if (TownController.instance.townCurrentSize > TownController.instance.townMaxSize)
         {
             UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+            return;
         }
 
         if (TownController.instance.currentTownHappiness < TownController.instance.minTownHappiness)
         {
             UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+            return;
         }
 
         if (TownController.instance.totalPersonsKilled > TownController.instance.maxPersonsKilled / 2)
         {
             UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+            return;
         }
 
         if (TownController.instance.totalPersonsKilled > TownController.instance.maxPersonsKilled)
         {
             UIController.instance.updateHappinessInfoText(decreasePersonHappiness(true));
+            return;
+        }
+
+        if (TownController.instance.murder)
+        {
+            if (TownController.instance.totalPersonsKilled >= 2)
+            {
+                UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+            }
+            return;
         }
 
         #endregion
-        yield return new WaitForEndOfFrame();
+    }
+
+
+    public float increasePersonHappiness()
+    {
+        if (personHappiness < maxHappiness)
+        { 
+            currentHappinessDelay--;
+
+            if (currentHappinessDelay <= 0)
+            {
+                personHappiness += happinessIncreaseIncrement;
+
+                currentHappinessDelay = maxHappinessDelay;
+                return personHappiness;
+            }
+        }
+        return personHappiness;
+    }
+
+    public float decreasePersonHappiness(bool doubleHit = false)
+    {
+        if (!doubleHit)
+        {
+            if (personHappiness > 0)
+            {
+                currentHappinessDelay--;
+
+                if (currentHappinessDelay <= 0)
+                {
+                    personHappiness -= happinessDecreaseIncrement;
+
+                    currentHappinessDelay = maxHappinessDelay;
+
+                    return personHappiness;
+                }
+                return personHappiness;
+            }
+        }
+        else if (doubleHit)
+        {
+            if (personHappiness > 0)
+            {
+                currentHappinessDelay--;
+
+                if (currentHappinessDelay <= 0)
+                {
+                    personHappiness -= happinessDecreaseIncrement * 2;
+
+                    currentHappinessDelay = maxHappinessDelay;
+
+                    return personHappiness;
+                }
+                return personHappiness;
+            }
+        }
+
+        return personHappiness;
     }
 
     public void createChild(Transform parent)
@@ -238,76 +381,6 @@ public class TownPersonController : MonoBehaviour {
         tpc.setPersonSpeed(Random.Range(PersonSpawner.instance.minPersonSpeed, PersonSpawner.instance.maxPersonSpeed));
     }
 
-    public float increasePersonHappiness()
-    {
-        if (personHappiness < maxHappiness)
-        {
-            increasingHappiness = true;
-
-            currentHappinessDelay--;
-
-            if (currentHappinessDelay <= 0)
-            {
-                personHappiness += happinessIncreaseIncrement;
-
-                currentHappinessDelay = maxHappinessDelay;
-
-                increasingHappiness = false;
-                return personHappiness;
-            }
-        }
-
-        increasingHappiness = false;
-        return personHappiness;
-    }
-
-    public float decreasePersonHappiness(bool doubleHit = false)
-    {
-        if (!doubleHit)
-        {
-            if (personHappiness > 0)
-            {
-                decreasingHappiness = true;
-                currentHappinessDelay--;
-
-                if (currentHappinessDelay <= 0)
-                {
-                    personHappiness -= happinessDecreaseIncrement;
-
-                    currentHappinessDelay = maxHappinessDelay;
-
-                    decreasingHappiness = false;
-                    return personHappiness;
-                }
-
-                decreasingHappiness = false;
-                return personHappiness;
-            }
-        }
-        else if (doubleHit)
-        {
-            if (personHappiness > 0)
-            {
-                decreasingHappiness = true;
-                currentHappinessDelay--;
-
-                if (currentHappinessDelay <= 0)
-                {
-                    personHappiness -= happinessDecreaseIncrement * 2;
-
-                    currentHappinessDelay = maxHappinessDelay;
-
-                    decreasingHappiness = false;
-                    return personHappiness;
-                }
-                decreasingHappiness = false;
-                return personHappiness;
-            }
-        }
-
-        return personHappiness;
-    }
-
     public void movePersonPosition(Vector3 _destination)
     {
         if (!personAgent.pathPending)
@@ -345,12 +418,25 @@ public class TownPersonController : MonoBehaviour {
     public void setMate(Transform mate)
     {
         currentMate = mate;
-        mateTCP = mate.GetComponent<TownPersonController>();
+        //mateTCP = mate.GetComponent<TownPersonController>();
     }
 
     public void resetBoredDelay()
     {
         currentBoredDelay = maxBoredDelay;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.CompareTag("Firepit"))
+        {
+            if (GodController.instance.sacrifices.Contains(transform))
+            {
+                GodController.instance.sacrifices.Remove(transform);
+
+                TownController.instance.killPerson(transform);
+            }
+        }
     }
 
     #region Getters
@@ -392,6 +478,11 @@ public class TownPersonController : MonoBehaviour {
     public int getPersonAge()
     {
         return personAge;
+    }
+
+    public float getMaxHappiness()
+    {
+        return maxHappiness;
     }
 
     public Transform getPersonsPartner()

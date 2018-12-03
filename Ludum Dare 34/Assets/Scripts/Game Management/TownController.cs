@@ -14,13 +14,15 @@ public class TownController : MonoBehaviour {
 
     public int happinessIncreaseIncrement = 10, happinessDecreaseIncrement = 4;
 
-    public float currentHappyDelay, maxHappyDelay = 100;
+    private float currentHappyDelay, maxHappyDelay = 100;
 
-    public float currentKillDelay, maxKillDelay = 1000;
+    private float currentKillDelay, maxKillDelay = 1000;
 
     private bool populatingTown = false;
 
-    private bool decreasingHappiness = false, increasingHappiness = false;
+    public int currentMurderDelay, maxMurderDelay = 800;
+
+    public bool murder = false;
 
     public List<Transform> townPersonsTransforms;
     public List<Transform> townHomesTransforms;
@@ -43,44 +45,65 @@ public class TownController : MonoBehaviour {
 
         currentKillDelay = maxKillDelay;
 
-        townMinSize = townMaxSize / 2;
+        townMinSize = townMaxSize - 10;
 
         minTownHappiness = maxTownHappiness / 2;
 
         currentTownHappiness = maxTownHappiness / 2;
 
+        currentMurderDelay = maxMurderDelay;
+
         UIController.instance.updatePopulationText();
         UIController.instance.updateHappinessText();
         UIController.instance.updateKilledText();
 
-        populateTown();
+        //populateTown();
     }
 
     private void Update()
     {
         if (!GameController.instance.isPaused)
         {
-            if (!increasingHappiness)
+            if (murder)
             {
-                decreaseChecks();
+                currentMurderDelay--;
+
+                if (currentMurderDelay <= 0)
+                {
+                    murder = false;
+
+                    currentMurderDelay = maxMurderDelay;
+                }
             }
 
-            if (!decreasingHappiness)
+            if (!GameController.instance.isPaused)
             {
-                increaseChecks();
+                if (GameController.instance.townHappy && !murder)
+                {
+                    increaseChecks();
+                }
+                else if (!GameController.instance.townHappy)
+                {
+                    decreaseChecks();
+                }
+
+                if (murder || MetorSpawner.instance.startMetorShower)
+                {
+                    decreaseTownHappiness();
+                }
+
+                decreasePersonsKilled();
             }
 
-            decreasePersonsKilled();
-        }
+            if (populatingTown)
+            {
+                populateTown();
+            }
 
-        if (populatingTown)
-        {
-            populateTown();
-        }
-
-        if (townCurrentSize >= townMaxSize)
-        {
-            populatingTown = false;
+            if (townCurrentSize >= townMaxSize)
+            {
+                populatingTown = false;
+            }
         }
     }
 
@@ -91,22 +114,7 @@ public class TownController : MonoBehaviour {
             decreaseTownHappiness();
         }
 
-        if (townCurrentSize < townMinSize)
-        {
-            decreaseTownHappiness();
-        }
-
-        if (GameController.instance.personsAverageHappiness < 60)
-        {
-            decreaseTownHappiness();
-        }
-
         if (totalPersonsKilled > maxPersonsKilled / 2)
-        {
-            decreaseTownHappiness();
-        }
-
-        if (totalPersonsKilled > 4)
         {
             decreaseTownHappiness();
         }
@@ -119,11 +127,6 @@ public class TownController : MonoBehaviour {
 
     public void increaseChecks()
     {
-        if (GameController.instance.personsAverageHappiness > 60)
-        {
-            increaseTownHappiness();
-        }
-
         if (townCurrentSize <= townMaxSize && townCurrentSize > townMinSize)
         {
             increaseTownHappiness();
@@ -132,8 +135,6 @@ public class TownController : MonoBehaviour {
 
     public void increaseTownHappiness()
     {
-        increasingHappiness = true;
-
         currentHappyDelay--;
 
         if (currentHappyDelay <= 0)
@@ -143,8 +144,6 @@ public class TownController : MonoBehaviour {
             resetHappyDelay();
 
             UIController.instance.updateHappinessText();
-
-            increasingHappiness = false;
             return;
         }
 
@@ -152,8 +151,6 @@ public class TownController : MonoBehaviour {
 
     public void decreaseTownHappiness(bool doubleHit = false)
     {
-        decreasingHappiness = true;
-
         if (!doubleHit)
         {
             currentHappyDelay--;
@@ -164,7 +161,6 @@ public class TownController : MonoBehaviour {
 
                 UIController.instance.updateHappinessText();
 
-                decreasingHappiness = false;
                 return;
             }
         }
@@ -178,7 +174,6 @@ public class TownController : MonoBehaviour {
 
                 UIController.instance.updateHappinessText();
 
-                decreasingHappiness = false;
                 return;
             }
         }
@@ -220,8 +215,59 @@ public class TownController : MonoBehaviour {
         UIController.instance.updatePopulationText();
     }
 
+    public void killPerson(Transform _person)
+    {
+        if (GameController.instance.happyPeople.Contains(_person))
+        {
+            GameController.instance.happyPeople.Remove(_person);
+        }
+        else if (GameController.instance.unHappyPeople.Contains(_person))
+        {
+            GameController.instance.unHappyPeople.Remove(_person);
+        }
+
+        TownController.instance.townPersonsTransforms.Remove(_person);
+
+        TownPersonController tpc = _person.GetComponent<TownPersonController>();
+
+        string gender = tpc.getPersonGender();
+
+        if (gender == "Male")
+        {
+            PersonSpawner.instance.currentMales--;
+            UIController.instance.updateSliders();
+        }
+        else if (gender == "Female")
+        {
+            PersonSpawner.instance.currentFemales--;
+            UIController.instance.updateSliders();
+        }
+
+        TownController.instance.totalPersonsKilled++;
+        UIController.instance.updateKilledText();
+
+        tpc.killPerson();
+
+        UIController.instance.updatePopulationText();
+    }
+
     public void killTownPerson()
     {
+        if (currentMurderDelay > 0)
+        {
+            murder = true;
+            currentMurderDelay = maxMurderDelay;
+        }
+
+        if (GameController.instance.happyPeople.Contains(CameraManager.instance.getFocusTarget()))
+        {
+            GameController.instance.happyPeople.Remove(CameraManager.instance.getFocusTarget());
+        }
+        else if (GameController.instance.unHappyPeople.Contains(CameraManager.instance.getFocusTarget()))
+        {
+            GameController.instance.unHappyPeople.Remove(CameraManager.instance.getFocusTarget());
+        }
+
         townPersonsTransforms.Remove(CameraManager.instance.getFocusTarget());
 
         TownPersonController tpc = CameraManager.instance.getFocusTarget().GetComponent<TownPersonController>();
@@ -232,7 +278,8 @@ public class TownController : MonoBehaviour {
         {
             PersonSpawner.instance.currentMales--;
             UIController.instance.updateSliders();
-        }else if (gender == "Female")
+        }
+        else if (gender == "Female")
         {
             PersonSpawner.instance.currentFemales--;
             UIController.instance.updateSliders();

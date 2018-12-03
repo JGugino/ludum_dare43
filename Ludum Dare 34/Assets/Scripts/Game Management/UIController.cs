@@ -9,11 +9,11 @@ public class UIController : MonoBehaviour {
 
     public static UIController instance;
 
-    public GameObject mainScreen, loadingScreen, settingsScreen, gameUIScreen;
+    public GameObject mainScreen, loadingScreen, settingsScreen, controlsScreen, gameUIScreen;
 
     public GameObject actionBarObject, infoBoxObject;
 
-    public Slider maleSlider, femaleSlider;
+    public Slider maleSlider, femaleSlider, beelzAngerSlider;
 
     public TextMeshProUGUI infoNameText, infoGenderText, infoAgeText, infoHappinessText, infoSpeedText, infoPartnerText, infoTaskText;
 
@@ -24,17 +24,15 @@ public class UIController : MonoBehaviour {
         instance = this;
     }
 
-
-    private void Start()
-    {
-        maleSlider.maxValue = PersonSpawner.instance.maxMales;
-        femaleSlider.maxValue = PersonSpawner.instance.maxFemales;
-    }
-
     public void updateSliders()
     {
         maleSlider.value = PersonSpawner.instance.currentMales;
         femaleSlider.value = PersonSpawner.instance.currentFemales;
+    }
+
+    public void updateBeelzSlider()
+    {
+        beelzAngerSlider.value = GodController.instance.currentBeelzAnger;
     }
 
     #region Text Updaters
@@ -115,6 +113,11 @@ public class UIController : MonoBehaviour {
     public void toggleSettingsScreen(bool _open)
     {
         settingsScreen.SetActive(_open);
+    }
+
+    public void toggleControlsScreen(bool _open)
+    {
+        controlsScreen.SetActive(_open);
     }
 
     public void toggleGameUIScreen(bool _open)

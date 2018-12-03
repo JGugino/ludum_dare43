@@ -22,6 +22,8 @@ public class PersonSpawner : MonoBehaviour {
 
     public int minPersonSpeed, maxPersonSpeed;
 
+    public Material maleMaterial, femaleMaterial;
+
     private Vector3 spawnPos;
 
     private void Awake()
@@ -82,7 +84,7 @@ public class PersonSpawner : MonoBehaviour {
             spawnPos = new Vector3(transform.position.x - Random.Range(minSpawn, maxSpawn), transform.position.y, transform.position.z - Random.Range(minSpawn, maxSpawn));
         }
 
-        Ray ray = Camera.main.ScreenPointToRay(spawnPos + new Vector3(10,0,10));
+        Ray ray = Camera.main.ScreenPointToRay(spawnPos);
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit))
@@ -96,6 +98,14 @@ public class PersonSpawner : MonoBehaviour {
                 setPersonStats(tpc);
 
                 spawnedPerson.name = tpc.getPersonName();
+
+                if (tpc.getPersonGender() == "Male")
+                {
+                    spawnedPerson.GetComponentInChildren<MeshRenderer>().material = maleMaterial;
+                }else if (tpc.getPersonGender() == "Female")
+                {
+                    spawnedPerson.GetComponentInChildren<MeshRenderer>().material = femaleMaterial;
+                }
 
                 TownController.instance.townPersonsTransforms.Add(spawnedPerson.transform);
                 TownController.instance.townCurrentSize = TownController.instance.townPersonsTransforms.ToArray().Length;

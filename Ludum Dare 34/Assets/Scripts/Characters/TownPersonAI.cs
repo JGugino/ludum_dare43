@@ -26,120 +26,93 @@ public class TownPersonAI : MonoBehaviour {
         currentMatingDelay = maxMatingDelay;
     }
 
-    public void personAI()
+    private void Update()
     {
-        PersonDecide();
+        float distance = Vector3.Distance(tpc.personAgent.transform.position, tpc.personAgent.destination);
 
-        UIController.instance.updateTaskInfoText(currentTask);
-
-        if (tpc.getPersonsParent() != null)
+        if (distance < 4)
         {
-            if (tpc.getPersonAge() < 5)
-            {
-                float distance = Vector3.Distance(transform.position, tpc.getPersonsParent().position);
+            StartCoroutine(PersonWander());
 
-                if (distance > 20)
-                {
-                    if (tpc.personAgent.pathStatus == NavMeshPathStatus.PathComplete)
-                    {
-                        tpc.movePersonPosition(tpc.getPersonsParent().position);
-                    }
-                }
+            if (destPicked)
+            {
+                destPicked = false;
             }
         }
     }
 
-    public void PersonDecide()
+    public void TBD()
     {
-        if (Random.value < 0.7)
+        if (tpc.getPersonsPartner() != null)
         {
-            if (tpc.personAgent.remainingDistance <= tpc.personAgent.stoppingDistance)
+            float distance = Vector3.Distance(transform.position, tpc.getPersonsPartner().position);
+            if (distance <= tpc.matingRange)
             {
-                if (tpc.personAgent.pathStatus == NavMeshPathStatus.PathComplete && transform.position == tpc.personAgent.destination)
+                currentTask = "making child";
+
+                tpc.increasePersonHappiness();
+
+                currentMatingDelay--;
+
+                tpc.movePersonPosition(tpc.getPersonsPartner().position);
+
+                if (currentMatingDelay <= 0)
                 {
-                    StartCoroutine(PersonWander());
-
-                    if (destPicked)
+                    if (tpc.getPersonGender() == "Female")
                     {
-                        destPicked = false;
-                    }
-                }
-            }
-            return;
-        }
-
-        if (Random.value > 0.7)
-        {
-            if (tpc.getPersonsPartner() != null)
-            {
-                float distance = Vector3.Distance(transform.position, tpc.getPersonsPartner().position);
-                if (distance <= tpc.matingRange)
-                {
-                    currentTask = "making child";
-
-                    tpc.increasePersonHappiness();
-
-                    currentMatingDelay--;
-
-                    tpc.movePersonPosition(tpc.getPersonsPartner().position);
-
-                    if (currentMatingDelay <= 0)
-                    {
-                        if (tpc.getPersonGender() == "Female")
+                        if (tpc.currentChildren < tpc.maxChildren)
                         {
-                            if (tpc.currentChildren < tpc.maxChildren)
-                            {
-                                tpc.createChild(transform);
+                            tpc.createChild(transform);
 
-                                tpc.currentChildren++;
+                            tpc.currentChildren++;
+
+                            tpc.getPersonsPartner().GetComponent<TownPersonController>().setPersonsPartner(null);
+                            tpc.setPersonsPartner(null);
+                        }
+                    }
+                    else if (tpc.getPersonGender() != "Female")
+                    {
+                        if (tpc.getPersonsPartner().GetComponent<TownPersonController>().getPersonGender() == "Female")
+                        {
+                            if (tpc.getPersonsPartner().GetComponent<TownPersonController>().getCurrentChildren() < tpc.getPersonsPartner().GetComponent<TownPersonController>().getMaxChildren())
+                            {
+                                tpc.createChild(tpc.getPersonsPartner().transform);
+
+                                tpc.getPersonsPartner().GetComponent<TownPersonController>().currentChildren++;
 
                                 tpc.getPersonsPartner().GetComponent<TownPersonController>().setPersonsPartner(null);
                                 tpc.setPersonsPartner(null);
                             }
                         }
-                        else if (tpc.getPersonGender() != "Female")
-                        {
-                            if (tpc.getPersonsPartner().GetComponent<TownPersonController>().getPersonGender() == "Female")
-                            {
-                                if (tpc.getPersonsPartner().GetComponent<TownPersonController>().getCurrentChildren() < tpc.getPersonsPartner().GetComponent<TownPersonController>().getMaxChildren())
-                                {
-                                    tpc.createChild(tpc.getPersonsPartner().transform);
-
-                                    tpc.getPersonsPartner().GetComponent<TownPersonController>().currentChildren++;
-
-                                    tpc.getPersonsPartner().GetComponent<TownPersonController>().setPersonsPartner(null);
-                                    tpc.setPersonsPartner(null);
-                                }
-                            }
-                        }
                     }
                 }
+            }
 
-                if (tpc.getPersonsPartner() == null)
+            if (tpc.getPersonsPartner() == null)
+            {
+                if (tpc.getPersonAge() < 50)
                 {
-                    if (tpc.getPersonAge() < 50)
+                    if (tpc.getPersonHappiness() > 85)
                     {
-                        if (tpc.getPersonHappiness() > 85)
-                        {
-                            currentTask = "finding mate";
+                        currentTask = "finding mate";
 
-                            findMate();
-                        }
+                        findMate();
                     }
                 }
             }
         }
     }
 
+
     public IEnumerator PersonWander()
     {
         if (tpc.personAgent.pathStatus == NavMeshPathStatus.PathComplete)
         {
-            currentTask = "Wandering around";
+            float creatureRange = Random.Range(minWanderDistance, maxWanderDistance);
 
             yield return new WaitForSeconds(personWanderWait);
 
-            float creatureRange = Random.Range(minWanderDistance, maxWanderDistance);
+            currentTask = "Wandering around";
 
             if (!destPicked)
             {
@@ -154,8 +127,6 @@ public class TownPersonAI : MonoBehaviour {
                             destPicked = true;
                         }
                     }
-
-                    yield return new WaitForSeconds(personWanderWait / 2);
                 }
 
                 if (Random.value >= 0.3 && Random.value <= 0.5)
@@ -169,8 +140,6 @@ public class TownPersonAI : MonoBehaviour {
                             destPicked = true;
                         }
                     }
-
-                    yield return new WaitForSeconds(personWanderWait / 2);
                 }
 
                 if (Random.value >= 0.6 && Random.value <= 0.8)
@@ -184,8 +153,6 @@ public class TownPersonAI : MonoBehaviour {
                             destPicked = true;
                         }
                     }
-
-                    yield return new WaitForSeconds(personWanderWait / 2);
                 }
 
                 if (Random.value >= 0.9)
@@ -199,11 +166,11 @@ public class TownPersonAI : MonoBehaviour {
                             destPicked = true;
                         }
                     }
-
-                    yield return new WaitForSeconds(personWanderWait / 2);
                 }
             }
         }
+
+        yield return new WaitForSeconds(2);
 
         if (movePos != Vector3.zero && !tpc.personAgent.pathPending && tpc.personAgent.pathStatus != NavMeshPathStatus.PathInvalid && tpc.personAgent.pathStatus == NavMeshPathStatus.PathComplete)
         {
@@ -215,6 +182,11 @@ public class TownPersonAI : MonoBehaviour {
 
             currentTask = "none";
         }
+    }
+
+    public IEnumerator PersonWait()
+    {
+        yield return new WaitForEndOfFrame();
     }
 
     public void findMate()
