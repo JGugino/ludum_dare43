@@ -63,10 +63,10 @@ public class MeteorController : MonoBehaviour {
         }
 
         TownController.instance.totalPersonsKilled++;
-        UIController.instance.updateKilledText();
+        UIController.instance.updateKilledSlider();
 
         tpc.killPerson();
 
-        UIController.instance.updatePopulationText();
+        UIController.instance.updatePopulationSlider();
     }
 }

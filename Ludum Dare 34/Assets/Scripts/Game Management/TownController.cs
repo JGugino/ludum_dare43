@@ -53,9 +53,9 @@ public class TownController : MonoBehaviour {
 
         currentMurderDelay = maxMurderDelay;
 
-        UIController.instance.updatePopulationText();
-        UIController.instance.updateHappinessText();
-        UIController.instance.updateKilledText();
+        UIController.instance.updatePopulationSlider();
+        UIController.instance.updateHappinessSlider();
+        UIController.instance.updateKilledSlider();
 
         //populateTown();
     }
@@ -143,7 +143,7 @@ public class TownController : MonoBehaviour {
 
             resetHappyDelay();
 
-            UIController.instance.updateHappinessText();
+            UIController.instance.updateHappinessSlider();
             return;
         }
 
@@ -159,7 +159,7 @@ public class TownController : MonoBehaviour {
                 currentTownHappiness -= happinessDecreaseIncrement;
                 resetHappyDelay();
 
-                UIController.instance.updateHappinessText();
+                UIController.instance.updateHappinessSlider ();
 
                 return;
             }
@@ -172,7 +172,7 @@ public class TownController : MonoBehaviour {
                 currentTownHappiness -= happinessDecreaseIncrement * 2;
                 resetHappyDelay();
 
-                UIController.instance.updateHappinessText();
+                UIController.instance.updateHappinessSlider();
 
                 return;
             }
@@ -212,7 +212,17 @@ public class TownController : MonoBehaviour {
     {
         townPersonsTransforms.Add(newPerson);
 
-        UIController.instance.updatePopulationText();
+        UIController.instance.updatePopulationSlider();
+    }
+
+    public void assignTask()
+    {
+        if (CameraManager.instance.getFocusTarget() != null)
+        {
+            CameraManager.instance.getFocusTarget().GetComponent<TownPersonController>().assign = true;
+
+            UIController.instance.toggleActionBar(false);
+        }
     }
 
     public void killPerson(Transform _person)
@@ -244,11 +254,11 @@ public class TownController : MonoBehaviour {
         }
 
         TownController.instance.totalPersonsKilled++;
-        UIController.instance.updateKilledText();
+        UIController.instance.updateKilledSlider();
 
         tpc.killPerson();
 
-        UIController.instance.updatePopulationText();
+        UIController.instance.updatePopulationSlider();
     }
 
     public void killTownPerson()
@@ -286,10 +296,10 @@ public class TownController : MonoBehaviour {
         }
 
         totalPersonsKilled++;
-        UIController.instance.updateKilledText();
+        UIController.instance.updateKilledSlider();
 
         tpc.killPerson();
 
-        UIController.instance.updatePopulationText();
+        UIController.instance.updatePopulationSlider();
     }
 }

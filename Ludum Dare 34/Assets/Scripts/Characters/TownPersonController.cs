@@ -44,6 +44,8 @@ public class TownPersonController : MonoBehaviour {
 
     public bool happyActive =false, madActive = false, matingActive = false;
 
+    public bool assign = true;
+
     public List<Transform> children;
 
     private void Awake()
@@ -83,27 +85,34 @@ public class TownPersonController : MonoBehaviour {
 
             if (isControlling)
             {
-                //tpa.setCurrentTask("Obeying Orders");
-                //if (Input.GetMouseButtonDown(0))
-                //{
-                //    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                //    RaycastHit hit;
+                if (assign)
+                {
+                    tpa.setCurrentTask("Obeying Orders");
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                        RaycastHit hit;
 
-                //    if (Physics.Raycast(ray, out hit))
-                //    {
-                //        if (hit.collider.CompareTag("Ground"))
-                //        {
-                //            float distance = Vector3.Distance(transform.position, hit.point);
+                        if (Physics.Raycast(ray, out hit))
+                        {
+                            if (hit.collider.CompareTag("Ground"))
+                            {
+                                float distance = Vector3.Distance(transform.position, hit.point);
 
-                //            if (distance < moveDistance)
-                //            {
-                //                movePersonPosition(hit.point);
-                //                increasePersonHappiness();
-                //                resetBoredDelay();
-                //            }
-                //        }
-                //    }
-                //}
+                                if (distance < moveDistance)
+                                {
+                                    movePersonPosition(hit.point);
+                                    increasePersonHappiness();
+                                    TownController.instance.increaseTownHappiness();
+
+                                    UIController.instance.toggleActionBar(true);
+
+                                    assign = false;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -178,12 +187,12 @@ public class TownPersonController : MonoBehaviour {
         #region Increase Happiness
         if (TownController.instance.townCurrentSize <= TownController.instance.townMaxSize)
         {
-            UIController.instance.updateHappinessInfoText(increasePersonHappiness());
+            UIController.instance.updateHappinessInfoSlider(increasePersonHappiness());
             return;
         }
         if (TownController.instance.currentTownHappiness >= TownController.instance.minTownHappiness)
         {
-            UIController.instance.updateHappinessInfoText(increasePersonHappiness());
+            UIController.instance.updateHappinessInfoSlider(increasePersonHappiness());
             return;
         }
         #endregion
@@ -194,25 +203,25 @@ public class TownPersonController : MonoBehaviour {
         #region Decrease Happiness
         if (TownController.instance.townCurrentSize > TownController.instance.townMaxSize)
         {
-            UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+            UIController.instance.updateHappinessInfoSlider(decreasePersonHappiness());
             return;
         }
 
         if (TownController.instance.currentTownHappiness < TownController.instance.minTownHappiness)
         {
-            UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+            UIController.instance.updateHappinessInfoSlider(decreasePersonHappiness());
             return;
         }
 
         if (TownController.instance.totalPersonsKilled > TownController.instance.maxPersonsKilled / 2)
         {
-            UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+            UIController.instance.updateHappinessInfoSlider(decreasePersonHappiness());
             return;
         }
 
         if (TownController.instance.totalPersonsKilled > TownController.instance.maxPersonsKilled)
         {
-            UIController.instance.updateHappinessInfoText(decreasePersonHappiness(true));
+            UIController.instance.updateHappinessInfoSlider(decreasePersonHappiness(true));
             return;
         }
 
@@ -220,7 +229,7 @@ public class TownPersonController : MonoBehaviour {
         {
             if (TownController.instance.totalPersonsKilled >= 2)
             {
-                UIController.instance.updateHappinessInfoText(decreasePersonHappiness());
+                UIController.instance.updateHappinessInfoSlider(decreasePersonHappiness());
             }
             return;
         }

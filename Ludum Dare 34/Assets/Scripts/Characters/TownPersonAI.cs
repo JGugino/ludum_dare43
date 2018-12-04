@@ -28,15 +28,18 @@ public class TownPersonAI : MonoBehaviour {
 
     private void Update()
     {
-        float distance = Vector3.Distance(tpc.personAgent.transform.position, tpc.personAgent.destination);
-
-        if (distance < 4)
+        if (!tpc.assign)
         {
-            StartCoroutine(PersonWander());
+            float distance = Vector3.Distance(tpc.personAgent.transform.position, tpc.personAgent.destination);
 
-            if (destPicked)
+            if (distance < 4)
             {
-                destPicked = false;
+                StartCoroutine(PersonWander());
+
+                if (destPicked)
+                {
+                    destPicked = false;
+                }
             }
         }
     }

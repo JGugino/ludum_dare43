@@ -128,7 +128,7 @@ public class GameController : MonoBehaviour {
             townHappy = false;
         }
 
-        //Debug.Log("Happy People: " + happyPeople.ToArray().Length + ", Unhappy People: " + unHappyPeople.ToArray().Length);
+        UIController.instance.updateSliders();
 
         return;
     }
@@ -145,8 +145,8 @@ public class GameController : MonoBehaviour {
 
         TownController.instance.populateTown();
 
-        UIController.instance.maleSlider.maxValue = PersonSpawner.instance.maxMales;
-        UIController.instance.femaleSlider.maxValue = PersonSpawner.instance.maxFemales;
+        //UIController.instance.maleSlider.maxValue = PersonSpawner.instance.maxMales;
+        //UIController.instance.femaleSlider.maxValue = PersonSpawner.instance.maxFemales;
         UIController.instance.beelzAngerSlider.maxValue = GodController.instance.maxBeelzAnger;
 
         UIController.instance.updateSliders();

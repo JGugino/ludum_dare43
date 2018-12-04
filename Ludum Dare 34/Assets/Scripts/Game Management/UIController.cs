@@ -9,25 +9,27 @@ public class UIController : MonoBehaviour {
 
     public static UIController instance;
 
-    public GameObject mainScreen, loadingScreen, settingsScreen, controlsScreen, gameUIScreen;
+    public GameObject mainScreen, loadingScreen, settingsScreen, controlsScreen, creditsScreen, gameUIScreen;
 
     public GameObject actionBarObject, infoBoxObject;
 
-    public Slider maleSlider, femaleSlider, beelzAngerSlider;
+    public Slider beelzAngerSlider;
 
-    public TextMeshProUGUI infoNameText, infoGenderText, infoAgeText, infoHappinessText, infoSpeedText, infoPartnerText, infoTaskText;
+    public Slider populationSlider, happinessSlider, killedPersonSlider, happySlider, unhappySlider, infoHappinessSlider;
 
-    public TextMeshProUGUI populationText, killedPersonsText, happinessText;
+    public TextMeshProUGUI infoNameText, infoGenderText, infoAgeText, infoSpeedText, infoPartnerText, infoTaskText;
 
     private void Awake()
     {
         instance = this;
     }
 
-    public void updateSliders()
-    {
-        maleSlider.value = PersonSpawner.instance.currentMales;
-        femaleSlider.value = PersonSpawner.instance.currentFemales;
+    public void updateSliders() {
+        happySlider.maxValue = TownController.instance.townMaxSize;
+        unhappySlider.maxValue = TownController.instance.townMaxSize;
+
+        happySlider.value = GameController.instance.happyPeople.ToArray().Length;
+        unhappySlider.value = GameController.instance.unHappyPeople.ToArray().Length;
     }
 
     public void updateBeelzSlider()
@@ -37,29 +39,35 @@ public class UIController : MonoBehaviour {
 
     #region Text Updaters
 
-    public void updatePopulationText()
+    public void updatePopulationSlider()
     {
+        populationSlider.maxValue = TownController.instance.townMaxSize;
+
         TownController.instance.townCurrentSize = TownController.instance.townPersonsTransforms.ToArray().Length;
 
-        populationText.text = "Town Population: " + TownController.instance.townCurrentSize + "/" + TownController.instance.townMaxSize;
+        populationSlider.value = TownController.instance.townCurrentSize;
     }
 
-    public void updateHappinessText()
+    public void updateHappinessSlider()
     {
-        happinessText.text = "Town Happiness: " + TownController.instance.currentTownHappiness + "/" + TownController.instance.maxTownHappiness;
+        happinessSlider.maxValue = TownController.instance.maxTownHappiness;
+
+        happinessSlider.value = TownController.instance.currentTownHappiness;
     }
 
-    public void updateKilledText()
+    public void updateKilledSlider()
     {
-        killedPersonsText.text = "Person(s) Killed: " + TownController.instance.totalPersonsKilled + "/" + TownController.instance.maxPersonsKilled;
+        killedPersonSlider.maxValue = TownController.instance.maxPersonsKilled;
+
+        killedPersonSlider.value = TownController.instance.totalPersonsKilled;
     }
 
     public void updateInfoBoxText(TownPersonController _tcp)
     {
-        infoNameText.text = "Name: " + _tcp.getPersonName();
+        infoNameText.text = _tcp.getPersonName();
         infoGenderText.text = "Gender: " + _tcp.getPersonGender();
         infoAgeText.text = "Age: " + _tcp.getPersonAge();
-        infoHappinessText.text = "Happiness: " + _tcp.getPersonHappiness();
+        infoHappinessSlider.value = _tcp.getPersonHappiness();
         infoSpeedText.text = "Speed: " + _tcp.getPersonSpeed();
         if (_tcp.getPersonsPartner() != null)
         {
@@ -80,11 +88,11 @@ public class UIController : MonoBehaviour {
         
     }
 
-    public void updateHappinessInfoText(float _happiness)
+    public void updateHappinessInfoSlider(float _happiness)
     {
         if (infoBoxObject.activeSelf)
         {
-            infoHappinessText.text = "Happiness: " + _happiness;
+            infoHappinessSlider.value = _happiness;
         }
     }
 
@@ -118,6 +126,11 @@ public class UIController : MonoBehaviour {
     public void toggleControlsScreen(bool _open)
     {
         controlsScreen.SetActive(_open);
+    }
+
+    public void toggleCreditsScreen(bool _open)
+    {
+        creditsScreen.SetActive(_open);
     }
 
     public void toggleGameUIScreen(bool _open)

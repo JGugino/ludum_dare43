@@ -110,7 +110,7 @@ public class PersonSpawner : MonoBehaviour {
                 TownController.instance.townPersonsTransforms.Add(spawnedPerson.transform);
                 TownController.instance.townCurrentSize = TownController.instance.townPersonsTransforms.ToArray().Length;
 
-                UIController.instance.updatePopulationText();
+                UIController.instance.updatePopulationSlider();
             }
         }
     }
@@ -132,8 +132,6 @@ public class PersonSpawner : MonoBehaviour {
 
                     _personController.setPersonName(possibleMaleNames[maleName]);
                 }
-
-                UIController.instance.updateSliders();
             }
             else
             {
@@ -148,8 +146,6 @@ public class PersonSpawner : MonoBehaviour {
 
                         _personController.setPersonName(possibleFemaleNames[femaleName]);
                     }
-
-                    UIController.instance.updateSliders();
                 }
             }
         }else if (personsGender > 3)
@@ -165,8 +161,6 @@ public class PersonSpawner : MonoBehaviour {
 
                     _personController.setPersonName(possibleFemaleNames[femaleName]);
                 }
-
-                UIController.instance.updateSliders();
             }
             else
             {
@@ -181,8 +175,6 @@ public class PersonSpawner : MonoBehaviour {
 
                         _personController.setPersonName(possibleMaleNames[maleName]);
                     }
-
-                    UIController.instance.updateSliders();
                 }
             }
         }
